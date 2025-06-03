@@ -307,17 +307,18 @@ function convertGoogleDriveLink(url) {
     });
   }
 
-  function isCloudflareWorkerLink($url) {
-    return strpos($url, 'workers.dev') !== false && strpos($url, '?download=') !== false;
-}
-if (isCloudflareWorkerLink($videoUrl)) {
-    // Directly pass the Cloudflare Worker streaming link
-    echo json_encode([
-        'type' => 'cloudflare',
-        'url' => $videoUrl
-    ]);
-}
+  const player = new Plyr('#player');
+  const videoUrl = "https://scloud.snub-tiptop-half.workers.dev/?download=35df95c92b28e189cdd89a16ef344191%3A051761523e55228960a39063040df7056f0193d39ae77d2bb7e346df6fa5fa92630354aa1680cdf7efdfa2f182acf46d0614dcc8197d3facb98a004d5d2d50d950e2e91553a101cad7d48c3969f17c77b37b058caa28fbe424e380b1e475770df9df144cbf045c0ba51f0150c951a235a070f728915cba4140d325c2cc424bec47cbb2dddee0adc5ef64dd7847ae8bce785a563da09a1e64cdeb5c9c44d2ee06538e066f95b15afb9e0d6753d29309a2";
 
+  player.source = {
+    type: 'video',
+    sources: [{
+      src: videoUrl,
+      type: 'video/mp4'
+    }]
+  };
+
+  
   function playFromInput() {
     const url = document.getElementById('videoInput').value.trim();
     const subtitleFile = document.getElementById('subtitleInput').files[0];
