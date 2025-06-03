@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, Access-Control-Allow-Origin: *, Accept-Ranges: bytes, Content-Type: video/mp4 " />
   <title>Stream Any File</title>
 
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
@@ -132,6 +132,30 @@
   const audioSelect = document.getElementById('audioTrack');
   const subSelect = document.getElementById('subTrack');
   const qualitySelect = document.getElementById('qualitySelect');
+
+  addEventListener('fetch', event => {
+  event.respondWith(handleRequest(event.request))
+})
+
+async function handleRequest(request) {
+  const target = 'https://sparkling-sound-8a68.gusto-gusto-veal.workers.dev/?download=...';
+
+  const res = await fetch(target, {
+    headers: {
+      'Origin': request.headers.get('Origin'),
+    }
+  });
+
+  const modifiedHeaders = new Headers(res.headers);
+  modifiedHeaders.set('Access-Control-Allow-Origin', '*');
+  modifiedHeaders.set('Content-Disposition', 'inline'); // Override download behavior
+
+  return new Response(res.body, {
+    status: res.status,
+    headers: modifiedHeaders
+  });
+}
+
 
   let hls, dash, externalAudioSource;
 
