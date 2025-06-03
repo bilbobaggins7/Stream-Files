@@ -2,71 +2,252 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Movie Streamer</title>
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+  <title>Stream Any File</title>
+
+  <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+  <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+
   <style>
-    body { margin: 0; background: #111; font-family: Arial, sans-serif; color: white; }
-    header { padding: 1rem; background: #000; text-align: center; font-size: 2rem; }
-    .controls { text-align: center; padding: 1rem; }
-    .controls input[type="text"] { width: 50%; padding: 0.5rem; border-radius: 5px; border: none; font-size: 1rem; margin-right: 0.5rem; }
-    .controls input[type="file"] { color: white; }
-    .controls button { padding: 0.5rem 1rem; font-size: 1rem; background: #ff4444; color: white; border: none; border-radius: 5px; cursor: pointer; }
-    .controls button:hover { background: #e33; }
-    .media-controls { display: flex; justify-content: center; gap: 1rem; padding: 1rem; align-items: center; }
-    select, .volume-container { font-size: 1rem; padding: 0.5rem; }
-    .volume-container { position: relative; }
-    .volume-slider { position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%); display: none; width: 100px; }
-    .volume-container:hover .volume-slider { display: block; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; padding: 1rem; }
-    .card { background: #222; border-radius: 10px; overflow: hidden; cursor: pointer; transition: transform 0.2s; }
-    .card:hover { transform: scale(1.03); }
-    .card img { width: 100%; height: 320px; object-fit: cover; }
-    .card-title { padding: 0.5rem; text-align: center; }
-    video { display: block; margin: 2rem auto 1rem auto; width: 90%; max-width: 800px; border-radius: 10px; background: black; }
+    body {
+      background: #111;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    
+    header { text-align: center; margin-top: 20px; }
+    .container {
+      margin: 100px auto;
+      max-width: 500px;
+    }
+
+
+        video, iframe {
+      width: 700px;
+      height: 400px;
+      border-radius: 50px;
+      background: black;
+    }
+
+
+
+    .controls {
+      margin: 60px auto; padding: 15px; background: #1e1e1e;
+      border-radius: 10px; display: flex; flex-wrap: wrap;
+      justify-content: center; gap: 10px;
+    }
+    .controls input[type="text"], .controls select,
+    .controls button, .controls input[type="file"] {
+      padding: 8px; font-size: 14px; border-radius: 6px;
+      border: none; background: #333; color: white;
+    }
+    .controls button { background: #007acc; cursor: pointer; }
+    .controls button:hover { background: #0090ff; }
+    @media (max-width: 600px) {
+      .controls { flex-direction: column; align-items: stretch; }
+    }
+
+
+   /* Force the player container to fill available space */
+
+   .plyr {
+    /* max-width: 100%; */
+   width: 700px;
+      height: 400px;
+
+}
+   .player-wrapper {
+  position: fixed; /* important for full-viewport */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.plyr__video-wrapper video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* or use 'contain' to avoid cropping */
+  border-radius: 0;
+}
+    #youtube-player iframe {
+      width: 100%;
+      height: 288px;
+      border: none;
+      border-radius: 16px;
+    }
+   
+    footer {
+      text-align: center;
+      margin-top: auto;
+      padding: 20px;
+      font-size: 14px;
+      color: #aaa;
+      background: #111;
+    }
   </style>
 </head>
 <body>
+<header><h2>Stream Any File</h2></header>
 
-<header>Stream Any Files</header>
+<div lass="container player-wrapper plyr__video-wrapper" id="player-container">
+  <video id="playerHtml" controls crossorigin="anonymous" playsinline preload="auto"
+    poster="https://c4.wallpaperflare.com/wallpaper/637/38/467/how-to-train-your-dragon-black-toothless-simple-background-wallpaper-preview.jpg">
+    <track kind="captions" label="English" srclang="en" src="" default>
+    <iframe src="convertedLink" allow="autoplay" width="100%" height="500" frameborder="0"></iframe>
+
+  </video>
+</div>
 
 <div class="controls">
-  <input type="text" id="videoInput" placeholder="Paste video URL (.mp4, .mkv, .m3u8, .mpd)" />
-  <input type="file" id="subtitleInput" accept=".srt" />
-  <input type="file" id="audioInput" accept=".aac,.mp3,.m4a" />
+  <input type="text" id="videoInput" placeholder="Paste video URL (.mp4, .mkv, .m3u8, .mpd, YouTube, Google Drive)" />
+  <input type="file" id="subtitleInput" accept=".srt, .vtt" />
+  <input type="file" id="audioInput" accept=".aac,.mp3,.m4a,.ac3,.ddp,.dts" />
+  <label>Quality: <select id="qualitySelect"></select></label>
+  <label for="audioTrack">Audio:</label>
+  <select id="audioTrack"><option>Default</option></select>
+  <label for="subTrack">Subtitles:</label>
+  <select id="subTrack"><option value="">None</option></select>
   <button onclick="playFromInput()">Play</button>
 </div>
 
-<video id="player" controls crossorigin="anonymous" playsinline></video>
-
-<div class="media-controls">
-  <label for="audioTrack">Audio:</label>
-  <select id="audioTrack"><option>Loading...</option></select>
-
-  <label for="subTrack">Subtitles:</label>
-  <select id="subTrack"><option value="">None</option></select>
-
-  <div class="volume-container">
-    <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="1" />
-  </div>
-</div>
-
-<div class="grid" id="videoList"></div>
-
 <script>
-  const player = document.getElementById('player');
+  const videoElement = window.currentVideo || document.getElementById('playerHtml');
+  const player = new Plyr(videoElement, { captions: { active: true } });
   const audioSelect = document.getElementById('audioTrack');
   const subSelect = document.getElementById('subTrack');
-  const volumeSlider = document.querySelector('.volume-slider');
-  let hls, dash;
-  let externalAudioSource;
+  const qualitySelect = document.getElementById('qualitySelect');
+
+  let hls, dash, externalAudioSource;
+
+  function isYouTubeUrl(url) {
+    return /youtube\.com|youtu\.be/.test(url);
+  }
+
+  function getYouTubeEmbedUrl(url) {
+    const videoId = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
+    return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+  }
+
+
+
+  async function playVideo(url, subtitleFile, audioFile) {
+  const container = document.getElementById('player-container');
+  container.innerHTML = ''; // Clear previous player
+  resetTracks();
+
+  if (isYouTubeUrl(url)) {
+    const iframe = document.createElement('iframe');
+    iframe.id = 'youtubePlayer';
+    iframe.src = getYouTubeEmbedUrl(url);
+    iframe.allow = 'autoplay; fullscreen';
+    iframe.width = '100%';
+    iframe.height = '500';
+    iframe.style.border = 'none';
+    iframe.style.borderRadius = '16px';
+    container.appendChild(iframe);
+    return;
+  }
+
+  if (url.includes('drive.google.com')) url = convertGoogleDriveLink(url);
+
+  const videoElement = document.createElement('video');
+  videoElement.id = 'playerHtml';
+  videoElement.controls = true;
+  videoElement.crossOrigin = 'anonymous';
+  videoElement.playsInline = true;
+  videoElement.preload = 'auto';
+  videoElement.poster = 'https://c4.wallpaperflare.com/wallpaper/637/38/467/how-to-train-your-dragon-black-toothless-simple-background-wallpaper-preview.jpg';
+  container.appendChild(videoElement);
+
+  const player = new Plyr(videoElement, { captions: { active: true } });
+
+  // Save global refs if needed
+  window.currentPlayer = player;
+  window.currentVideo = videoElement;
+
+ if (url.includes('drive.google.com')) {
+  const embedUrl = convertGoogleDriveLink(url);
+  const iframe = document.createElement('iframe');
+  iframe.src = embedUrl;
+  iframe.allow = 'autoplay';
+  iframe.width = '100%';
+  iframe.height = '500';
+  iframe.style.border = 'none';
+  document.getElementById('player-container').innerHTML = '';
+  document.getElementById('player-container').appendChild(iframe);
+  return;
+}
+
+
+  if (url.endsWith('.m3u8') && Hls.isSupported()) {
+    hls = new Hls();
+    hls.loadSource(url);
+    hls.attachMedia(videoElement);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      qualitySelect.innerHTML = '<option value="-1">Auto</option>';
+      hls.levels.forEach((level, i) => {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = level.height ? `${level.height}p` : `Level ${i + 1}`;
+        qualitySelect.appendChild(option);
+      });
+      qualitySelect.onchange = () => {
+        hls.currentLevel = parseInt(qualitySelect.value);
+      };
+      populateAudioTracks(hls.audioTracks, 'hls');
+      populateSubtitleTracks(hls.subtitleTracks, 'hls');
+      videoElement.play();
+    });
+  } else if (url.endsWith('.mpd')) {
+    dash = dashjs.MediaPlayer().create();
+    dash.initialize(videoElement, url, true);
+    dash.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
+      populateAudioTracks(dash.getTracksFor('audio'), 'dash');
+      populateSubtitleTracks(dash.getTracksFor('text'), 'dash');
+      videoElement.play();
+    });
+  } else {
+    const source = document.createElement('source');
+    source.src = url;
+    source.type = 'video/mp4';
+    videoElement.appendChild(source);
+    videoElement.load();
+    videoElement.play().catch(console.warn);
+  }
+
+  if (subtitleFile) await loadExternalSubtitle(subtitleFile);
+}
+
+function convertGoogleDriveLink(url) {
+  // Match Google Drive file ID from either /d/ID/ or ?id=ID
+  const match = url.match(/\/d\/([^/]+)|id=([^&]+)/);
+  const fileId = match?.[1] || match?.[2];
+
+  // Use the Google Drive preview link to avoid CORS issues
+  return fileId ? `https://drive.google.com/file/d/${fileId}/preview` : url;
+}
+
 
   function resetTracks() {
     audioSelect.innerHTML = '<option>Loading...</option>';
     subSelect.innerHTML = '<option value="">None</option>';
-    while (player.textTracks.length > 0) {
-      player.removeChild(player.querySelector('track'));
-    }
+    Array.from(videoElement.querySelectorAll('track')).forEach(t => t.remove());
   }
 
   function populateAudioTracks(tracks, apiType) {
@@ -77,7 +258,6 @@
       opt.text = track.name || track.lang || `Track ${i + 1}`;
       audioSelect.appendChild(opt);
     });
-
     audioSelect.onchange = () => {
       const index = parseInt(audioSelect.value);
       if (apiType === 'hls') hls.audioTrack = index;
@@ -93,7 +273,6 @@
       opt.text = track.label || track.lang || `Subtitle ${i + 1}`;
       subSelect.appendChild(opt);
     });
-
     subSelect.onchange = () => {
       const index = parseInt(subSelect.value);
       if (apiType === 'hls') hls.subtitleTrack = index >= 0 ? index : -1;
@@ -101,7 +280,7 @@
         const textTracks = dash.getTracksFor('text');
         dash.setTextTrack(index >= 0 ? textTracks[index] : -1);
       } else {
-        Array.from(player.textTracks).forEach((tt, i) => {
+        Array.from(videoElement.textTracks).forEach((tt, i) => {
           tt.mode = (i === index) ? 'showing' : 'disabled';
         });
       }
@@ -117,72 +296,12 @@
     track.label = 'External Subtitle';
     track.src = URL.createObjectURL(blob);
     track.default = true;
-    player.appendChild(track);
+    videoElement.appendChild(track);
     track.addEventListener('load', () => {
       track.mode = 'showing';
       populateSubtitleTracks([{ label: 'External Subtitle' }], 'native');
       subSelect.value = 0;
     });
-  }
-
-  async function playVideo(url, subtitleFile = null, audioFile = null) {
-    resetTracks();
-    if (externalAudioSource) {
-      try { externalAudioSource.stop(); } catch {}
-      externalAudioSource = null;
-    }
-    if (hls) { hls.destroy(); hls = null; }
-    if (dash) { dash.reset(); dash = null; }
-    player.pause();
-    player.removeAttribute('src');
-    player.load();
-
-    if (url.endsWith('.m3u8') && Hls.isSupported()) {
-      hls = new Hls();
-      hls.loadSource(url);
-      hls.attachMedia(player);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        populateAudioTracks(hls.audioTracks, 'hls');
-        populateSubtitleTracks(hls.subtitleTracks, 'hls');
-        player.play();
-      });
-    } else if (url.endsWith('.mpd')) {
-      dash = dashjs.MediaPlayer().create();
-      dash.initialize(player, url, true);
-      dash.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
-        populateAudioTracks(dash.getTracksFor('audio'), 'dash');
-        const textTracks = dash.getTracksFor('text');
-        populateSubtitleTracks(textTracks, 'dash');
-        player.play();
-      });
-    } else {
-      player.src = url;
-      player.play();
-    }
-
-    if (subtitleFile) await loadExternalSubtitle(subtitleFile);
-
-    if (audioFile) {
-      const audioContext = new AudioContext();
-      const audioData = await audioFile.arrayBuffer();
-      const decodedData = await audioContext.decodeAudioData(audioData);
-      externalAudioSource = audioContext.createBufferSource();
-      externalAudioSource.buffer = decodedData;
-      externalAudioSource.connect(audioContext.destination);
-
-      player.addEventListener('play', () => {
-        if (audioContext.state === 'suspended') audioContext.resume();
-        externalAudioSource.start(0, player.currentTime);
-      });
-      player.addEventListener('pause', () => audioContext.suspend());
-      player.addEventListener('seeked', () => {
-        externalAudioSource.stop();
-        externalAudioSource = audioContext.createBufferSource();
-        externalAudioSource.buffer = decodedData;
-        externalAudioSource.connect(audioContext.destination);
-        externalAudioSource.start(0, player.currentTime);
-      });
-    }
   }
 
   function playFromInput() {
@@ -192,30 +311,106 @@
     if (url) playVideo(url, subtitleFile, audioFile);
   }
 
-  volumeSlider.oninput = () => {
-    player.volume = volumeSlider.value;
-    player.muted = volumeSlider.value == 0;
-  };
+  function isWebOS() {
+    return navigator.userAgent.includes('Web0S') || navigator.userAgent.includes('webOS');
+  }
 
-  fetch('videos.php')
-    .then(res => res.json())
-    .then(data => {
-      const container = document.getElementById('videoList');
-      data.forEach(video => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `<img src="${video.thumbnail}" alt="${video.title}">
-                          <div class="card-title">${video.title}</div>`;
-        card.onclick = () => playVideo(video.url);
-        container.appendChild(card);
-      });
-    }).catch(() => {});
 
-  player.addEventListener('seeked', () => {
-    player.play().catch(() => {});
+function goFullscreen(video) {
+  if (!video) return;
+
+  if (isWebOS()) {
+    // Special case for LG webOS
+    document.body.style.overflow = 'hidden';
+    video.style.position = 'fixed';
+    video.style.top = '0';
+    video.style.left = '0';
+    video.style.width = '100vw';
+    video.style.height = '100vh';
+    video.style.zIndex = '9999';
+    video.style.objectFit = 'contain';
+  } else if (video.requestFullscreen) {
+    video.requestFullscreen();
+  } else if (video.webkitRequestFullscreen) {
+    video.webkitRequestFullscreen();
+  } else if (video.mozRequestFullScreen) {
+    video.mozRequestFullScreen();
+  } else if (video.msRequestFullscreen) {
+    video.msRequestFullscreen();
+  } else {
+    console.warn("Fullscreen API is not supported");
+  }
+}
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const fullscreenBtn = document.querySelector('.plyr__control--fullscreen');
+
+  if (fullscreenBtn) {
+    fullscreenBtn.addEventListener('click', () => {
+      const video = document.querySelector('video');
+      goFullscreen(video);
+    });
+  }
+});
+
+  function goNativeFullscreen() {
+    const video = document.querySelector('video');
+    if (isWebOS()) {
+      document.body.style.overflow = 'hidden';
+      video.style.position = 'fixed';
+      video.style.top = '0';
+      video.style.left = '0';
+      video.style.width = '100vw';
+      video.style.height = '100vh';
+      video.style.zIndex = '9999';
+      video.style.objectFit = 'contain';
+    } else if (video.requestFullscreen) {
+      video.requestFullscreen();
+    } else if (video.webkitEnterFullscreen) {
+      video.webkitEnterFullscreen();
+    }
+  }
+
+  // Plyr override for webOS fullscreen button
+  if (isWebOS()) {
+    player.fullscreen.enabled = false;
+    document.querySelector('.plyr__control--fullscreen')?.addEventListener('click', goNativeFullscreen);
+  }
+
+  // Wake Lock API
+  let wakeLock = null;
+  async function requestWakeLock() {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => console.log('Wake Lock released'));
+    } catch (err) {
+      console.error('WakeLock error:', err);
+    }
+  }
+  function releaseWakeLock() {
+    if (wakeLock !== null) {
+      wakeLock.release().then(() => wakeLock = null);
+    }
+  }
+
+  videoElement.addEventListener('play', () => navigator.wakeLock && requestWakeLock());
+  videoElement.addEventListener('pause', () => navigator.wakeLock && releaseWakeLock());
+  videoElement.addEventListener('ended', () => navigator.wakeLock && releaseWakeLock());
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && !videoElement.paused && navigator.wakeLock) {
+      requestWakeLock();
+    }
   });
+
+  window.playFromInput = playFromInput;
 </script>
 
+<footer>
+  Made with ❤️ by <strong>HICCUP</strong>.<br>
+  All Content is Indexed from Various Sites around the globe, proxied using Cloudflare Technology and <strong>"HICCUP"</strong> doesn’t rip/pirate anything.<br>
+  Copyright owners/Representatives contact us if you think any of the <strong>"HICCUP"</strong> files violate intellectual property rights.<br>
+  This is just an Index, much like how Google and Search Engine Works.
+</footer>
 </body>
-</html>
 </html>
