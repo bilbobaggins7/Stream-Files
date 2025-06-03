@@ -219,25 +219,35 @@ async function handleRequest(request) {
 }
 
 
-  if (url.endsWith('.m3u8') && Hls.isSupported()) {
-    hls = new Hls();
-    hls.loadSource(url);
-    hls.attachMedia(videoElement);
-    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-      qualitySelect.innerHTML = '<option value="-1">Auto</option>';
-      hls.levels.forEach((level, i) => {
-        const option = document.createElement('option');
-        option.value = i;
-        option.textContent = level.height ? `${level.height}p` : `Level ${i + 1}`;
-        qualitySelect.appendChild(option);
-      });
-      qualitySelect.onchange = () => {
-        hls.currentLevel = parseInt(qualitySelect.value);
-      };
-      populateAudioTracks(hls.audioTracks, 'hls');
-      populateSubtitleTracks(hls.subtitleTracks, 'hls');
-      videoElement.play();
+if (url.endsWith('.m3u8') && Hls.isSupported()) {
+  hls = new Hls({
+    renderTextTracksNatively: false,
+    enableWebVTT: true,
+    enableCEA708Captions: true,
+  });
+
+  hls.loadSource(url);
+  hls.attachMedia(videoElement);
+
+  hls.on(Hls.Events.MANIFEST_PARSED, () => {
+    qualitySelect.innerHTML = '<option value="-1">Auto</option>';
+    hls.levels.forEach((level, i) => {
+      const option = document.createElement('option');
+      option.value = i;
+      option.textContent = level.height ? `${level.height}p` : `Level ${i + 1}`;
+      qualitySelect.appendChild(option);
     });
+    videoElement.play();
+  });
+
+  hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, (e, data) => {
+    populateAudioTracks(data.audioTracks, 'hls');
+  });
+
+  hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, (e, data) => {
+    populateSubtitleTracks(data.subtitleTracks, 'hls');
+  });
+
   } else if (url.endsWith('.mpd')) {
     dash = dashjs.MediaPlayer().create();
     dash.initialize(videoElement, url, true);
