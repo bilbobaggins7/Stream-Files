@@ -307,6 +307,17 @@ function convertGoogleDriveLink(url) {
     });
   }
 
+  function isCloudflareWorkerLink($url) {
+    return strpos($url, 'workers.dev') !== false && strpos($url, '?download=') !== false;
+}
+if (isCloudflareWorkerLink($videoUrl)) {
+    // Directly pass the Cloudflare Worker streaming link
+    echo json_encode([
+        'type' => 'cloudflare',
+        'url' => $videoUrl
+    ]);
+}
+
   function playFromInput() {
     const url = document.getElementById('videoInput').value.trim();
     const subtitleFile = document.getElementById('subtitleInput').files[0];
