@@ -190,10 +190,12 @@
   iframe.height = '500';
   iframe.style.border = 'none';
   iframe.style.borderRadius = '16px';
+  iframe.setAttribute('allowfullscreen', ''); // ← important
   document.getElementById('player-container').innerHTML = '';
   document.getElementById('player-container').appendChild(iframe);
-  return;
-}
+  
+    return;
+  }
 
 
   if (url.endsWith('.m3u8') && Hls.isSupported()) {
